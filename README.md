@@ -1,75 +1,101 @@
-# Gestor de Tareas - Primer Entrega
+# 🚀 Gestor de Tareas Colaborativas — Backend API (TPI)
 
-Aplicación backend para la gestión de tareas, usuarios y equipos.  
-Está desarrollada con **Node.js**, **Express**, **TypeScript** y **TypeORM**, utilizando **SQLite** como base de datos embebida.  
+Aplicación **backend (API REST)** desarrollada para la **Gestión Colaborativa de Tareas**, implementando autenticación, roles, control de acceso y flujos de trabajo según los requisitos del **TPI**.
 
 ---
 
-## 🛠️ Tecnologías utilizadas
-- Node.js (v16+ recomendado)
-- TypeScript
-- Express
-- TypeORM
-- SQLite
+## 🛠️ Tecnologías Clave Utilizadas
+
+| Tecnología        | Versión mínima | Propósito |
+|-------------------|----------------|------------|
+| **Node.js**       | v16+            | Entorno de ejecución |
+| **TypeScript**    | —               | Lenguaje de programación tipado |
+| **Express**       | —               | Framework para routing y middleware |
+| **TypeORM**       | —               | ORM para el mapeo objeto-relacional |
+| **SQLite**        | —               | Base de datos ligera, sin servidor externo |
+| **bcrypt**        | —               | Hashing de contraseñas (seguridad) |
+| **class-validator** | —             | Validación de DTOs (Data Transfer Objects) |
+
+---
+
+## 📂 Estructura del Proyecto (Arquitectura de 4 Capas)
+
+El proyecto sigue una arquitectura modular de **4 capas**, asegurando separación de responsabilidades y fácil mantenimiento.
+
+| Carpeta | Rol | Ejemplos |
+|----------|-----|-----------|
+| `src/controllers/` | Controladores HTTP (reciben y responden peticiones) | `usuariosController.ts`, `tareasController.ts` |
+| `src/services/` | Lógica de negocio y validaciones | `usuariosService.ts`, `equiposService.ts` |
+| `src/entities/` | Modelos de base de datos (TypeORM Entities) | `Usuario.ts`, `Tarea.ts`, `Membresia.ts` |
+| `src/routes/` | Definición de endpoints de Express | `usuarioRoutes.ts`, `equipoRoutes.ts` |
+| `src/middlewares/` | Funciones intermedias (seguridad, validación) | `authMiddleware.ts`, `validateDto.ts` |
+
+---
+
+## 🧱 Entidades Mínimas Implementadas
+
+- **Usuario:** Autenticación y gestión de perfiles.  
+- **Equipo:** Grupos de trabajo colaborativos.  
+- **Membresía:** Relación Usuario–Equipo con roles (Propietario / Miembro).  
+- **Tarea:** Núcleo del sistema (estado, prioridad, asignación).  
+- **Comentario / Actividad / Notificación:** Auditoría y colaboración entre usuarios.
+
+---
+
+## ⚙️ Pasos para la Configuración y Ejecución
+
+### 🔹 Requisitos Previos
+1. Tener **Node.js** y **npm** instalados.  
+2. Limpiar base de datos previa (si existe):
+
+```bash
+Remove-Item db.sqlite
+# Eliminar migraciones antiguas si existen
+Remove-Item src/migrations/*.ts
+
+1️⃣ Instalación de Dependencias
+
+Ejecutar en la carpeta raíz del proyecto:
+npm install
+
+2️⃣ Arranque del Servidor (Modo Desarrollo)
+
+El servidor se ejecuta con ts-node y genera las tablas automáticamente gracias a synchronize: true en data-source.ts.
+npm run dev
+✅ Verificá que en consola aparezca:
+Servidor escuchando en http://localhost:3000
+
+🔑 Endpoints Principales para Pruebas
+Podés probarlos desde Postman, Thunder Client o request.http.
+
+🔸 Autenticación (sin token)
+| Módulo      | Método | Endpoint               | Descripción             |
+| ----------- | ------ | ---------------------- | ----------------------- |
+| **Usuario** | `POST` | `/api/usuarios/signup` | Crear cuenta de usuario |
+| **Usuario** | `POST` | `/api/usuarios/login`  | Iniciar sesión          |
 
 
 
+🔸 Flujos de Tareas y Colaboración (requiere token)
+| Módulo           | Método  | Endpoint                           | Funcionalidad                                            |
+| ---------------- | ------- | ---------------------------------- | -------------------------------------------------------- |
+| **Equipo**       | `POST`  | `/api/equipos`                     | Crea un equipo y asigna al creador como propietario      |
+| **Tarea**        | `POST`  | `/api/tareas`                      | Crea una nueva tarea asociada a un equipo                |
+| **Tarea**        | `PATCH` | `/api/tareas/:id/estado`           | Cambia el estado de una tarea (aplica reglas de negocio) |
+| **Comentario**   | `POST`  | `/api/tareas/:tareaId/comentarios` | Agrega comentarios a la tarea                            |
+| **Notificación** | `GET`   | `/api/notificaciones`              | Lista las notificaciones del usuario                     |
 
-## 📂 Estructura del proyecto
-tpo-primer-entrega/
-├── src/
-│ ├── controllers/ # Controladores con endpoints REST
-│ ├── entities/ # Entidades principales (Usuario, Equipo, Membresia, Tarea, Etiqueta, Actividad)
-│ ├── migrations/ # Migraciones iniciales de la base de datos
-│ ├── data-source.ts # Configuración de la conexión con SQLite
-│ └── ...
-├── db.sqlite # Base de datos SQLite (se crea tras migraciones)
-├── package.json # Scripts y dependencias
-├── tsconfig.json # Configuración de TypeScript
-├── request.http # Archivo de pruebas para endpoints
+----------------------------------------------------------------------------------------------------------------------
+🧩 Notas de Desarrollo
 
+🔒 Seguridad: Las contraseñas se manejan con bcrypt y nunca se devuelven en las respuestas JSON.
 
+✅ Validación: Todos los datos entrantes se validan mediante class-validator en DTOs.
 
+⚙️ Modelado: Se implementa una estructura unidireccional entre entidades (Tarea → Actividad, Tarea → Comentario) para evitar problemas de carga circular en TypeORM.
 
-## Contenido
-- src/data-source.ts        -> DataSource (SQLite)
-- src/entities/*            -> Entidades mínimas (Usuario, Equipo, Membresia, Tarea, Etiqueta, Actividad)
-- src/migrations/*          -> Migración inicial (crea tablas)
-- src/controllers/*         -> Endpoints básicos: usuarios, equipos, tareas, etiquetas, actividad
-- package.json              -> scripts: dev, build, typeorm (migrate)
-- tsconfig.json
+🧠 Arquitectura: Las reglas de negocio viven en la capa de services, manteniendo los controladores limpios y simples.
 
-## Requisitos
-- Node.js (v16+ recomendado)
-- No hace falta instalar base externa: usa SQLite (archivo db.sqlite)
-
-
-
-
-## Pasos para ejecutar (Windows PowerShell)
-1. Abrir PowerShell en la carpeta del proyecto.
-2. Instalar dependencias:
-   npm install
-
-3. Ejecutar migraciones (crea las tablas en db.sqlite):
-   npm run typeorm migration:run  
-
-4. Levantar servidor en modo desarrollo:
-   npm run dev
-
-5. Probar endpoints el archivo request.http
-
-
-
-# Endpoints principales
-
-Usuarios: registro, listado
-
-Equipos: creación, listado
-
-Tareas: crear, editar, cambiar estado, eliminar
-
-## Notas
-- Las migraciones están en TypeScript en `src/migrations/` y usan SQL compatible con SQLite.
-- Las reglas de negocio están implementadas en los controladores.
-- Se puede borrar la base de datos mediante el comando: Remove-Item db.sqlite 
+📘 Autor: Proyecto académico — Aplicaciones Interactivas - UADE 2025
+📅 Versión: 1.0.0
+💾 Base de datos: SQLite (local)
