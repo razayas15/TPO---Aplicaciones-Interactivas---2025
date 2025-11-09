@@ -1,16 +1,31 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    CreateDateColumn,
+    OneToMany,
+} from 'typeorm';
+import { Membresia } from './Membresia'; 
+import { Tarea } from './Tarea';
 
-@Entity({ name: "equipos" })
+@Entity('equipos')
 export class Equipo {
-  @PrimaryGeneratedColumn()
-  id!: number;
+    @PrimaryGeneratedColumn()
+    id!: number;
 
-  @Column()
-  nombre!: string;
+    @Column({ unique: true })
+    nombre!: string;
 
-  @Column()
-  creado_por!: number;
+    @CreateDateColumn()
+    fechaCreacion!: Date;  
 
-  @Column({ type: "datetime", default: () => "CURRENT_TIMESTAMP" })
-  creado_en!: string;
+    // --- Relaciones ---
+
+    // 1. Relación con Membresías (para saber quiénes y con qué rol pertenecen)
+    @OneToMany(() => Membresia, membresia => membresia.equipo)
+    membresias!: Membresia[];
+
+    // 2. Relación con Tareas (las tareas que pertenecen a este equipo)
+    @OneToMany(() => Tarea, tarea => tarea.equipo)
+    tareas!: Tarea[]; 
 }

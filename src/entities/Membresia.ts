@@ -1,19 +1,43 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+// src/entities/Membresia.ts
 
-@Entity({ name: "membresias" })
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    ManyToOne,
+    JoinColumn,
+    Unique
+} from 'typeorm';
+import { Usuario } from './Usuario';
+import { Equipo } from './Equipo';
+
+@Unique(['usuarioId', 'equipoId']) 
+@Entity('membresias')
 export class Membresia {
-  @PrimaryGeneratedColumn()
-  id!: number;
+    @PrimaryGeneratedColumn()
+    id!: number;
 
-  @Column()
-  equipo_id!: number;
+    // Rol: Propietario o Miembro
+    @Column({ 
+        type: 'enum', 
+        enum: ['Propietario', 'Miembro'],
+        default: 'Miembro',
+    })
+    rol!: 'Propietario' | 'Miembro'; 
 
-  @Column()
-  usuario_id!: number;
+    // Clave Foránea a Usuario
+    @ManyToOne(() => Usuario, usuario => usuario.membresias, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'usuarioId' }) 
+    usuario!: Usuario;
 
-  @Column()
-  rol!: string;
+    @Column()
+    usuarioId!: number; 
 
-  @Column({ type: "datetime", default: () => "CURRENT_TIMESTAMP" })
-  agregado_en!: string;
-} 
+    // Clave Foránea a Equipo
+    @ManyToOne(() => Equipo, equipo => equipo.membresias, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'equipoId' }) 
+    equipo!: Equipo;
+    
+    @Column()
+    equipoId!: number; 
+}

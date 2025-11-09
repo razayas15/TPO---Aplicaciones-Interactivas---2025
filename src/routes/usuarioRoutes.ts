@@ -1,19 +1,25 @@
-import { Router } from "express";
-import { 
-    crearUsuario,
-    listarUsuarios,
-    obtenerUsuarioPorId,
-    actualizarUsuario,
-    eliminarUsuario
-} from "../controllers/usuariosController";
+// src/routes/usuarioRoutes.ts
+
+import { Router } from 'express';
+import { usuariosController } from '../controllers/usuariosController';
+// Asume que tienes un middleware para validar DTOs (necesario para el DTO)
+import { validateDtoMiddleware } from '../middlewares/validateDto'; 
+import { CreateUserDto, LoginUserDto } from '../dtos/user.dtos'; 
 
 const router = Router();
 
-// CRUD básico de usuarios
-router.post("/", crearUsuario);          // Crear
-router.get("/", listarUsuarios);         // Listar todos
-router.get("/:id", obtenerUsuarioPorId); // Buscar por ID
-router.put("/:id", actualizarUsuario);   // Actualizar
-router.delete("/:id", eliminarUsuario);  // Eliminar
+// Endpoint de Registro: POST /api/usuarios/signup
+router.post(
+    '/signup', 
+    validateDtoMiddleware(CreateUserDto), // Valida DTO antes del Controller
+    usuariosController.registrar
+); 
+
+// Endpoint de Login: POST /api/usuarios/login
+router.post(
+    '/login', 
+    validateDtoMiddleware(LoginUserDto), // Valida DTO antes del Controller
+    usuariosController.login
+);
 
 export default router;

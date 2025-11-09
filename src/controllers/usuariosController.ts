@@ -1,72 +1,67 @@
-import { Request, Response } from "express";
-import { AppDataSource } from "../data-source";
-import { Usuario } from "../entities/Usuario";
+// src/controllers/usuariosController.ts
 
-export const crearUsuario = async (req: Request, res: Response) => {
-  try {
-    const { nombre, correo } = req.body;
+import { Request, Response, NextFunction } from 'express';
+import { usuariosService } from '../services/usuariosService';
+import { CreateUserDto, LoginUserDto } from '../dtos/user.dtos'; 
 
-    if (!nombre || !correo) {
-      return res.status(400).json({ error: "Nombre y correo son obligatorios" });
+// Importa aquí tu librería para generar JWT (ej. jsonwebtoken)
+// import * as jwt from 'jsonwebtoken'; 
+
+export class UsuariosController {
+    
+    /** POST /signup - Registro de un nuevo usuario **/
+    // src/controllers/usuariosController.ts (Método registrar)
+
+// ...
+
+    async registrar(req: Request, res: Response, next: NextFunction) {
+        try {
+            // ... (Lógica de try) ...
+            
+        } catch (error) {
+            
+            // SOLUCIÓN: Usar la aserción de tipo para acceder a 'status' y 'message'
+            const customError = error as { status?: number; message?: string }; 
+            
+            // LÍNEA 26 CORREGIDA
+            const status = customError.status || 500;
+            
+            // LÍNEA 27 CORREGIDA
+            const message = customError.message || 'Error interno del servidor al registrar.';
+            
+            return res.status(status).json({ message: message });
+        }
     }
+// ...
 
-    const repo = AppDataSource.getRepository(Usuario);
-    const usuario = repo.create({ nombre, correo });
-    await repo.save(usuario);
+    /** POST /login - Inicio de sesión **/
+    async login(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { email, password } = req.body as LoginUserDto;
+            
+            // 1. Delegar la validación de credenciales al Servicio
+            const user = await usuariosService.validarCredenciales(email, password);
 
-    res.json(usuario);
-  } catch (err) {
-    res.status(500).json({ error: "Error al crear usuario", details: err });
-  }
-};
+            if (!user) {
+                // 2. Respuesta: 401 Unauthorized si falla la validación
+                return res.status(401).json({ message: 'Credenciales inválidas.' });
+            }
 
-export const listarUsuarios = async (_req: Request, res: Response) => {
-  const repo = AppDataSource.getRepository(Usuario);
-  const usuarios = await repo.find();
-  res.json(usuarios);
-};
+            // 3. Generar y firmar el token JWT (Requisito de Autenticación)
+            const token = "TOKEN_JWT_GENERADO_AQUI"; 
+            // const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
-//obtiene los usuarios por medio del ID
-export const obtenerUsuarioPorId = async (req: Request, res: Response) => {
-  const repo = AppDataSource.getRepository(Usuario);
-  const usuario = await repo.findOneBy({ id: parseInt(req.params.id) });
+            // 4. Respuesta: 200 OK con el token y datos del usuario
+            return res.status(200).json({ 
+                user: user.toJSON(), 
+                token: token,
+                message: 'Inicio de sesión exitoso'
+            });
 
-  if (!usuario) {
-    return res.status(404).json({ error: "Usuario no encontrado" });
-  }
+        } catch (error) {
+            return res.status(500).json({ message: 'Error interno del servidor.' });
+        }
+    }
+}
 
-  res.json(usuario);
-};
-
-// Actualizar usuario
-export const actualizarUsuario = async (req: Request, res: Response) => {
-  const repo = AppDataSource.getRepository(Usuario);
-  const usuario = await repo.findOneBy({ id: parseInt(req.params.id) });
-
-  if (!usuario) {
-    return res.status(404).json({ error: "Usuario no encontrado" });
-  }
-
-  const { nombre, correo, estado } = req.body;
-
-  if (nombre) usuario.nombre = nombre;
-  if (correo) usuario.correo = correo;
-  if (estado) usuario.estado = estado;
-
-  await repo.save(usuario);
-
-  res.json(usuario);
-};
-
-// Eliminar usuario
-export const eliminarUsuario = async (req: Request, res: Response) => {
-  const repo = AppDataSource.getRepository(Usuario);
-  const usuario = await repo.findOneBy({ id: parseInt(req.params.id) });
-
-  if (!usuario) {
-    return res.status(404).json({ error: "Usuario no encontrado" });
-  }
-
-  await repo.remove(usuario);
-  res.status(204).send();
-};
+export const usuariosController = new UsuariosController();

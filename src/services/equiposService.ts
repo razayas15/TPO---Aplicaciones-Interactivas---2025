@@ -1,0 +1,149 @@
+// src/services/equiposService.ts
+
+import { Repository, Not, In } from 'typeorm';
+import { Equipo } from '../entities/Equipo';
+import { Membresia } from '../entities/Membresia';
+import { Usuario } from '../entities/Usuario';
+import { Tarea } from '../entities/Tarea'; // Necesaria para la validación de eliminación
+import { CreateTeamDto } from '../dtos/create-team.dto';
+import { AppDataSource } from '../data-source'; 
+
+// Asumimos que los repositorios están inicializados
+const equipoRepo = AppDataSource.getRepository(Equipo);
+const membresiaRepo = AppDataSource.getRepository(Membresia);
+const usuarioRepo = AppDataSource.getRepository(Usuario);
+const tareaRepo = AppDataSource.getRepository(Tarea);
+
+class EquiposService {
+    
+    /**
+     * Crea un equipo y asigna al creador como Propietario.
+     */
+    async crearEquipo(teamDto: CreateTeamDto, creadorId: number): Promise<Equipo> {
+        // ... (Lógica de creación)
+        const nuevoEquipo = equipoRepo.create(teamDto);
+        const equipoGuardado = await equipoRepo.save(nuevoEquipo);
+        
+        // Asignar creador como 'Propietario'
+        const membresia = membresiaRepo.create({
+            equipoId: equipoGuardado.id,
+            usuarioId: creadorId,
+            rol: 'Propietario',
+        });
+        await membresiaRepo.save(membresia);
+
+        return equipoGuardado;
+    }
+    
+    /**
+     * Valida si un usuario tiene un rol específico en un equipo.
+     */
+    async verificarPermiso(usuarioId: number, equipoId: number, rolRequerido: 'Propietario' | 'Miembro'): Promise<Membresia> {
+        const membresia = await membresiaRepo.findOne({
+            where: { usuarioId, equipoId },
+        });
+
+        if (!membresia) {
+             throw { status: 403, message: 'Acceso denegado. No pertenece al equipo.' };
+        }
+        
+        if (rolRequerido === 'Propietario' && membresia.rol !== 'Propietario') {
+            throw { status: 403, message: 'Acceso denegado. Se requiere rol de Propietario.' };
+        }
+
+        return membresia;
+    }
+
+    /**
+     * Elimina un equipo. Regla de negocio: No eliminar si tiene tareas activas.
+     */
+    async eliminarEquipo(equipoId: number) {
+        // Regla de Negocio: No se elimina si tiene tareas Pendientes o En curso (Requisito 6)
+        const tareasActivas = await tareaRepo.count({
+            where: {
+                equipo: { id: equipoId },
+                estado: In(['Pendiente', 'En curso']),
+            },
+        });
+
+        if (tareasActivas > 0) {
+            throw { 
+                status: 400, 
+                message: 'No se puede eliminar el equipo: tiene tareas Pendientes o En curso.' 
+            };
+        }
+
+        const resultado = await equipoRepo.delete(equipoId);
+        
+        if (resultado.affected === 0) {
+            throw { status: 404, message: 'Equipo no encontrado.' };
+        }
+        
+        return { message: 'Equipo eliminado exitosamente.' };
+    }
+    
+    /**
+     * Añade un usuario (por email) a un equipo.
+     */
+    async agregarMiembro(equipoId: number, email: string, rol: 'Propietario' | 'Miembro', propietarioId: number) {
+        await this.verificarPermiso(propietarioId, equipoId, 'Propietario');
+
+        const usuarioAAgregar = await usuarioRepo.findOne({ where: { email } });
+        if (!usuarioAAgregar) {
+            throw { status: 404, message: 'Usuario a agregar no encontrado.' };
+        }
+
+        const membresiaExistente = await membresiaRepo.findOne({
+            where: { equipoId, usuarioId: usuarioAAgregar.id }
+        });
+
+        if (membresiaExistente) {
+            throw { status: 400, message: 'El usuario ya es miembro de este equipo.' };
+        }
+
+        const nuevaMembresia = membresiaRepo.create({
+            equipoId,
+            usuarioId: usuarioAAgregar.id,
+            rol,
+        });
+
+        return membresiaRepo.save(nuevaMembresia);
+    }
+    
+    /**
+     * Remueve un miembro de un equipo.
+     */
+    async removerMiembro(equipoId: number, emailARemover: string, propietarioId: number) {
+        await this.verificarPermiso(propietarioId, equipoId, 'Propietario');
+        
+        const usuarioARemover = await usuarioRepo.findOne({ where: { email: emailARemover } });
+        if (!usuarioARemover) {
+            throw { status: 404, message: 'Miembro a remover no encontrado.' };
+        }
+        
+        // Regla de Negocio: No puede remover al único propietario
+        const membresia = await membresiaRepo.findOne({
+            where: { equipoId, usuarioId: usuarioARemover.id, rol: 'Propietario' }
+        });
+
+        if (membresia) {
+            const propietariosRestantes = await membresiaRepo.count({
+                where: { equipoId, rol: 'Propietario', usuarioId: Not(usuarioARemover.id) }
+            });
+
+            if (propietariosRestantes === 0) {
+                throw { status: 400, message: 'No se puede remover al único propietario del equipo.' };
+            }
+        }
+        
+        const resultado = await membresiaRepo.delete({ equipoId, usuarioId: usuarioARemover.id });
+
+        if (resultado.affected === 0) {
+            throw { status: 404, message: 'El usuario no era miembro de este equipo.' };
+        }
+        
+        return { message: 'Miembro removido exitosamente.' };
+    }
+}
+
+export const equiposService = new EquiposService();

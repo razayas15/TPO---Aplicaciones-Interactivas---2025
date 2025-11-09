@@ -31,7 +31,7 @@ GET http://localhost:3000/usuarios/1
 
 ### 1.5 ACTUALIZAR USUARIO (PUT /:id)
 # Actualiza el nombre y el estado del usuario con ID 1
-PUT http://localhost:3000/usuarios/1
+PUT http://localhost:3000/usuarios/3
 Content-Type: application/json
 
 {
@@ -45,7 +45,7 @@ GET http://localhost:3000/usuarios/1
 
 ### 1.7 ELIMINAR USUARIO (DELETE /:id)
 # Elimina el usuario con ID 2 (Mariano)
-DELETE http://localhost:3000/usuarios/2
+DELETE http://localhost:3000/usuarios/1
 
 ### 1.8 LISTAR USUARIOS para verificar la eliminación (GET /)
 # Ahora solo debería aparecer el usuario con ID 1

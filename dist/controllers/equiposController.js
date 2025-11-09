@@ -1,24 +1,40 @@
 "use strict";
+// src/controllers/equiposController.ts
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.listarEquipos = exports.crearEquipo = void 0;
-const data_source_1 = require("../data-source");
-const Equipo_1 = require("../entities/Equipo");
-const crearEquipo = async (req, res) => {
-    try {
-        const { nombre, creado_por } = req.body;
-        const repo = data_source_1.AppDataSource.getRepository(Equipo_1.Equipo);
-        const equipo = repo.create({ nombre, creado_por });
-        await repo.save(equipo);
-        res.json(equipo);
+exports.equiposController = exports.EquiposController = void 0;
+const equiposService_1 = require("../services/equiposService");
+class EquiposController {
+    /** POST /equipos - Crear un nuevo equipo **/
+    async crearEquipo(req, res, next) {
+        try {
+            // Asumimos que el ID del usuario está en req.user después de la autenticación JWT
+            const creadorId = req.user.id;
+            const teamDto = req.body;
+            const equipo = await equiposService_1.equiposService.crearEquipo(teamDto, creadorId);
+            return res.status(201).json(equipo);
+        }
+        catch (error) {
+            const status = error.status || 500;
+            return res.status(status).json({ message: error.message });
+        }
     }
-    catch (err) {
-        res.status(500).json({ error: "Error al crear equipo", details: err });
+    /** DELETE /equipos/:id - Eliminar un equipo **/
+    async eliminarEquipo(req, res, next) {
+        try {
+            const equipoId = parseInt(req.params.id);
+            const usuarioId = req.user.id;
+            // 1. Verificar Permiso: Solo el Propietario puede eliminar
+            await equiposService_1.equiposService.verificarPermiso(usuarioId, equipoId, 'Propietario');
+            // 2. Eliminar (la lógica de negocio de chequeo de tareas está en el servicio)
+            const resultado = await equiposService_1.equiposService.eliminarEquipo(equipoId);
+            // 3. Respuesta: 200 OK
+            return res.status(200).json(resultado);
+        }
+        catch (error) {
+            const status = error.status || 500;
+            return res.status(status).json({ message: error.message });
+        }
     }
-};
-exports.crearEquipo = crearEquipo;
-const listarEquipos = async (_req, res) => {
-    const repo = data_source_1.AppDataSource.getRepository(Equipo_1.Equipo);
-    const equipos = await repo.find();
-    res.json(equipos);
-};
-exports.listarEquipos = listarEquipos;
+}
+exports.EquiposController = EquiposController;
+exports.equiposController = new EquiposController();

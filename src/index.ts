@@ -1,14 +1,14 @@
 import "reflect-metadata";
 import express from "express";
-import { AppDataSource } from "./data-source";
 
 import usuarioRoutes from "./routes/usuarioRoutes";
 import equipoRoutes from "./routes/equipoRoutes";
 import tareasRoutes from "./routes/tareasRoutes";
-import etiquetaRoutes from "./routes/etiquetasRoutes"; 
-import actividadRoutes from "./routes/actividadRoutes";  
+import etiquetaRoutes from "./routes/etiquetasRoutes";
+import actividadRoutes from "./routes/actividadesRoutes";  
 const app = express();
 app.use(express.json());
+import { AppDataSource } from "./data-source";
 
 
 
@@ -20,13 +20,13 @@ app.use("/etiquetas", etiquetaRoutes);
 app.use("/actividad", actividadRoutes);  
 // Inicializar DB y servidor
 AppDataSource.initialize()
-  .then(() => {
-    console.log("Base de datos inicializada");
-    app.listen(3000, () => {
-      console.log("Servidor corriendo en http://localhost:3000");
-    });
-  })
-  .catch((error) => console.error("Error en DataSource:", error));
+    .then(() => {
+        console.log("Conexión a la base de datos establecida.");
+        // --- INICIAR EXPRESS AQUÍ ---
+        // const app = express();
+        // app.listen(3000, () => console.log('Servidor corriendo en 3000'));
+    })
+    .catch((error) => console.error("Error al iniciar TypeORM:", error));
 
   app.get("/", (req, res) => {
   res.send(`

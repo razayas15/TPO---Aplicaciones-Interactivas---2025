@@ -1,6 +1,21 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  ManyToMany,
+  OneToMany,
+  JoinTable,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
+} from "typeorm";
+import { Usuario } from "./Usuario";
+import { Equipo } from "./Equipo";
+import { Etiqueta } from "./Etiqueta";
+import { Actividad } from "./Actividad";
+import { Comentario } from "./Comentario";
 
-@Entity({ name: "tareas" })
 export class Tarea {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -8,30 +23,57 @@ export class Tarea {
   @Column()
   titulo!: string;
 
-  @Column({ type: "text", nullable: true })
+  @Column("text")
   descripcion!: string;
 
-  @Column({ default: "PENDIENTE" })
-  estado!: string;
+  @Column({ type: 'enum', enum: ['PENDIENTE', 'EN_CURSO', 'FINALIZADA', 'CANCELADA'], default: 'PENDIENTE' })
+estado!: string; // O el enum tipado
 
-  @Column({ default: 2 })
-  prioridad!: number;
+  @Column({ type: "enum", enum: ["Alta", "Media", "Baja"], default: "Media" })
+  prioridad!: "Alta" | "Media" | "Baja";
 
-  @Column({ type: "datetime", nullable: true })
-  fecha_vencimiento!: string | null;
+ @Column({ type: 'timestamp', nullable: true })
+fechaLimite?: Date; // <-- DEBE SER OPCIONAL (añadir ?)
 
-  @Column()
-  creador_id!: number;
+  @ManyToOne(() => Usuario, { nullable: true })
+  @JoinColumn({ name: "asignadoAId" })
+  asignadoA?: Usuario;
 
   @Column({ nullable: true })
-  asignada_a!: number;
+  asignadoAId?: number;
+
+  @ManyToOne(() => Usuario, { nullable: false })
+  @JoinColumn({ name: "creadoPorId" })
+  creadoPor!: Usuario;
 
   @Column()
-  equipo_id!: number;
+  creadoPorId!: number;
 
-  @Column({ type: "datetime", default: () => "CURRENT_TIMESTAMP" })
-  creado_en!: string;
+  @ManyToOne(() => Equipo, (equipo) => equipo.tareas, { nullable: true })
+  @JoinColumn({ name: "equipoId" })
+  equipo!: Equipo;
 
-  @Column({ type: "datetime", default: () => "CURRENT_TIMESTAMP" })
-  actualizado_en!: string;
+  @Column()
+  equipoId!: number;
+
+  @ManyToMany(() => Etiqueta)
+  @JoinTable({
+    name: "tarea_etiquetas",
+    joinColumn: { name: "tareaId" },
+    inverseJoinColumn: { name: "etiquetaId" },
+  })
+  etiquetas!: Etiqueta[];
+  istorial!: Actividad[];
+
+  @OneToMany(() => Comentario, (comentario) => comentario.tarea, {
+    cascade: true,
+  })
+  comentarios!: Comentario[];
+
+  @CreateDateColumn()
+  fechaCreacion!: Date;
+
+  @UpdateDateColumn()
+  fechaActualizacion!: Date;
+
 }

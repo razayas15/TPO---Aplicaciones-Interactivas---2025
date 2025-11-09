@@ -11,8 +11,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Tarea = void 0;
 const typeorm_1 = require("typeorm");
-let Tarea = class Tarea {
-};
+const Usuario_1 = require("./Usuario");
+const Equipo_1 = require("./Equipo");
+const Etiqueta_1 = require("./Etiqueta");
+const Actividad_1 = require("./Actividad");
+const Comentario_1 = require("./Comentario");
+class Tarea {
+}
 exports.Tarea = Tarea;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
@@ -23,41 +28,74 @@ __decorate([
     __metadata("design:type", String)
 ], Tarea.prototype, "titulo", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "text", nullable: true }),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Tarea.prototype, "descripcion", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: "PENDIENTE" }),
+    (0, typeorm_1.Column)({ default: 'pendiente' }),
     __metadata("design:type", String)
 ], Tarea.prototype, "estado", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: 2 }),
-    __metadata("design:type", Number)
+    (0, typeorm_1.Column)({ default: 'media' }),
+    __metadata("design:type", String)
 ], Tarea.prototype, "prioridad", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "datetime", nullable: true }),
-    __metadata("design:type", Object)
-], Tarea.prototype, "fecha_vencimiento", void 0);
+    (0, typeorm_1.Column)({ type: 'date', nullable: true }),
+    __metadata("design:type", Date)
+], Tarea.prototype, "fechaLimite", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", Number)
-], Tarea.prototype, "creador_id", void 0);
+    (0, typeorm_1.ManyToOne)(() => Usuario_1.Usuario, { nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'asignadoAId' }),
+    __metadata("design:type", Usuario_1.Usuario)
+], Tarea.prototype, "asignadoA", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Number)
-], Tarea.prototype, "asignada_a", void 0);
+], Tarea.prototype, "asignadoAId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => Usuario_1.Usuario, { nullable: false }),
+    (0, typeorm_1.JoinColumn)({ name: 'creadoPorId' }),
+    __metadata("design:type", Usuario_1.Usuario)
+], Tarea.prototype, "creadoPor", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", Number)
-], Tarea.prototype, "equipo_id", void 0);
+], Tarea.prototype, "creadoPorId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "datetime", default: () => "CURRENT_TIMESTAMP" }),
-    __metadata("design:type", String)
-], Tarea.prototype, "creado_en", void 0);
+    (0, typeorm_1.ManyToOne)(() => Equipo_1.Equipo, equipo => equipo.tareas, { nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'equipoId' }),
+    __metadata("design:type", Equipo_1.Equipo)
+], Tarea.prototype, "equipo", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "datetime", default: () => "CURRENT_TIMESTAMP" }),
-    __metadata("design:type", String)
-], Tarea.prototype, "actualizado_en", void 0);
-exports.Tarea = Tarea = __decorate([
-    (0, typeorm_1.Entity)({ name: "tareas" })
-], Tarea);
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Tarea.prototype, "equipoId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToMany)(() => Etiqueta_1.Etiqueta),
+    (0, typeorm_1.JoinTable)({
+        name: 'tarea_etiquetas',
+        joinColumn: { name: 'tareaId' },
+        inverseJoinColumn: { name: 'etiquetaId' }
+    }),
+    __metadata("design:type", Array)
+], Tarea.prototype, "etiquetas", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => Actividad_1.Actividad, actividad => actividad.tarea, {
+        cascade: true
+    }),
+    __metadata("design:type", Array)
+], Tarea.prototype, "historial", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => Comentario_1.Comentario, comentario => comentario.tarea, {
+        cascade: true
+    }),
+    __metadata("design:type", Array)
+], Tarea.prototype, "comentarios", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)(),
+    __metadata("design:type", Date)
+], Tarea.prototype, "fechaCreacion", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)(),
+    __metadata("design:type", Date)
+], Tarea.prototype, "fechaActualizacion", void 0);

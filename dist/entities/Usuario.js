@@ -11,7 +11,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Usuario = void 0;
 const typeorm_1 = require("typeorm");
+// Importamos las entidades con las que se relaciona (las crearemos después)
+const Membresia_1 = require("./Membresia");
+const Tarea_1 = require("./Tarea");
 let Usuario = class Usuario {
+    toJSON() {
+        const { password, ...usuario } = this;
+        return usuario;
+    }
 };
 exports.Usuario = Usuario;
 __decorate([
@@ -19,21 +26,37 @@ __decorate([
     __metadata("design:type", Number)
 ], Usuario.prototype, "id", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ unique: true }),
+    __metadata("design:type", String)
+], Usuario.prototype, "email", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Usuario.prototype, "password", void 0);
+__decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Usuario.prototype, "nombre", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ unique: true }),
-    __metadata("design:type", String)
-], Usuario.prototype, "correo", void 0);
+    (0, typeorm_1.CreateDateColumn)(),
+    __metadata("design:type", Date)
+], Usuario.prototype, "fechaCreacion", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "datetime", default: () => "CURRENT_TIMESTAMP" }),
-    __metadata("design:type", String)
-], Usuario.prototype, "creado_en", void 0);
+    (0, typeorm_1.UpdateDateColumn)(),
+    __metadata("design:type", Date)
+], Usuario.prototype, "fechaActualizacion", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: "activo" }),
-    __metadata("design:type", String)
-], Usuario.prototype, "estado", void 0);
+    (0, typeorm_1.OneToMany)(() => Membresia_1.Membresia, (membresia) => membresia.usuario),
+    __metadata("design:type", Array)
+], Usuario.prototype, "membresias", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => Tarea_1.Tarea, (tarea) => tarea.creador),
+    __metadata("design:type", Array)
+], Usuario.prototype, "tareasCreadas", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => Tarea_1.Tarea, (tarea) => tarea.responsable),
+    __metadata("design:type", Array)
+], Usuario.prototype, "tareasAsignadas", void 0);
 exports.Usuario = Usuario = __decorate([
-    (0, typeorm_1.Entity)({ name: "usuarios" })
+    (0, typeorm_1.Entity)("usuarios")
 ], Usuario);

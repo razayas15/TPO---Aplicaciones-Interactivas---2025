@@ -11,6 +11,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Equipo = void 0;
 const typeorm_1 = require("typeorm");
+const Membresia_1 = require("./Membresia");
+const Tarea_1 = require("./Tarea");
 let Equipo = class Equipo {
 };
 exports.Equipo = Equipo;
@@ -19,17 +21,21 @@ __decorate([
     __metadata("design:type", Number)
 ], Equipo.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ unique: true }),
     __metadata("design:type", String)
 ], Equipo.prototype, "nombre", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", Number)
-], Equipo.prototype, "creado_por", void 0);
+    (0, typeorm_1.CreateDateColumn)(),
+    __metadata("design:type", Date)
+], Equipo.prototype, "fechaCreacion", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "datetime", default: () => "CURRENT_TIMESTAMP" }),
-    __metadata("design:type", String)
-], Equipo.prototype, "creado_en", void 0);
+    (0, typeorm_1.OneToMany)(() => Membresia_1.Membresia, membresia => membresia.equipo),
+    __metadata("design:type", Array)
+], Equipo.prototype, "membresias", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => Tarea_1.Tarea, tarea => tarea.equipo),
+    __metadata("design:type", Array)
+], Equipo.prototype, "tareas", void 0);
 exports.Equipo = Equipo = __decorate([
-    (0, typeorm_1.Entity)({ name: "equipos" })
+    (0, typeorm_1.Entity)('equipos')
 ], Equipo);

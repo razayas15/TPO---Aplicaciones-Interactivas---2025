@@ -15,6 +15,7 @@ const crearTarea = async (req, res) => {
             });
         }
         const nuevaTarea = tareaRepo.create({
+            id,
             titulo,
             descripcion,
             estado: "PENDIENTE",
