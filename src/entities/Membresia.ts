@@ -19,8 +19,8 @@ export class Membresia {
 
     // Rol: Propietario o Miembro
     @Column({ 
-        type: 'enum', 
-        enum: ['Propietario', 'Miembro'],
+        type: 'varchar', 
+        //enum: ['Propietario', 'Miembro'],
         default: 'Miembro',
     })
     rol!: 'Propietario' | 'Miembro'; 

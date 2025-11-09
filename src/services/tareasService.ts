@@ -64,23 +64,30 @@ class TareasService {
             etiquetas = await etiquetaRepo.findBy({ id: In(taskDto.etiquetasIds) });
         }
 
-        const nuevaTarea = tareaRepo.create({ /* ... */ });
+        // --- SOLUCIÓN DEL ERROR TS2304: Definir la variable aquí ---
+        const nuevaTarea = tareaRepo.create({ 
+            equipoId: taskDto.equipoId,
+            titulo: taskDto.titulo,
+            descripcion: taskDto.descripcion,
+            prioridad: taskDto.prioridad,
+            fechaLimite: taskDto.fechaLimite ? new Date(taskDto.fechaLimite) : null,
+            asignadoAId: taskDto.asignadoAId,
+            creadoPorId: creadorId,
+            etiquetas: etiquetas,
+        }); 
         
-        // Aquí es donde puede estar el error de inferencia:
-        const tareaGuardada: Tarea = await tareaRepo.save(nuevaTarea); // <-- TIPADO EXPLÍCITO
+        const tareaGuardada: Tarea = await tareaRepo.save(nuevaTarea);
         
-        // 5. INTEGRACIÓN: Notificar Asignación
-        if (tareaGuardada.asignadoAId && tareaGuardada.asignadoAId !== creadorId) {
-            // Aquí todas las propiedades son de la tarea singular, no del array.
-             await notificacionesService.crearNotificacion(
-                tareaGuardada.asignadoAId, // Ahora es un campo de la Tarea singular
-                'ASIGNACION', 
-                `Se te ha asignado la tarea "${tareaGuardada.titulo}"...`,
-                tareaGuardada.id
-            );
-        }
-        
-        return tareaGuardada; // Retorno de objeto singular
+        // INTEGRACIÓN: Notificar Asignación (Requisito 8)
+    if (tareaGuardada.asignadoAId && tareaGuardada.asignadoAId !== creadorId) {
+         await notificacionesService.crearNotificacion(
+            tareaGuardada.asignadoAId, 
+            'ASIGNACION', 
+            `Se te ha asignado la tarea "${tareaGuardada.titulo}" en el equipo ${taskDto.equipoId}.`,
+            tareaGuardada.id
+        );
+    }
+    return tareaGuardada;
     }
     
     // -------------------------------------------------------------------
@@ -109,7 +116,6 @@ class TareasService {
         const estadoAnterior = tarea.estado;
 
         // 2. Regla de Negocio: Validar Transición
-        // Usamos la capitalización correcta (asumimos MAYÚSCULAS)
         if (estadoAnterior === 'FINALIZADA' || estadoAnterior === 'CANCELADA') { 
              throw { status: 400, message: `No se puede cambiar el estado de una tarea ${estadoAnterior}.` };
         }
@@ -122,19 +128,16 @@ class TareasService {
             contenido: `Estado cambiado de "${estadoAnterior}" a "${nuevoEstado}".`,
         });
 
-        // 4. INTEGRACIÓN: Notificar Cambio de Estado (Requisito 8)
-        if (tarea.creadoPorId !== usuarioId) { 
-             await notificacionesService.crearNotificacion(
-                tarea.creadoPorId,
-                'CAMBIO_ESTADO', 
-                `El estado de tu tarea "${tarea.titulo}" cambió a ${nuevoEstado}.`,
-                tarea.id
-            );
-        }
-
-        // 5. Aplicar el cambio y guardar
-        (tarea.estado as any) = nuevoEstado; 
-        return tareaRepo.save(tarea);
+        // INTEGRACIÓN: Notificar al creador de la tarea (si no es el mismo que hizo el cambio)
+    if (tarea.creadoPorId !== usuarioId) { 
+         await notificacionesService.crearNotificacion(
+            tarea.creadoPorId,
+            'CAMBIO_ESTADO', 
+            `El estado de tu tarea "${tarea.titulo}" cambió a ${nuevoEstado}.`,
+            tarea.id
+        );
+    }
+    return tareaRepo.save(tarea);
     }
     
     // -------------------------------------------------------------------

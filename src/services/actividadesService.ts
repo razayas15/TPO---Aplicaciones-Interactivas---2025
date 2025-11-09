@@ -31,11 +31,12 @@ class ActividadesService {
         // pero para fines prácticos, nos enfocamos en la query:
         
         return actividadRepo.find({
-            where: { tareaId },
-            relations: ['usuario'], // Cargar quién realizó la acción
-            order: { fechaCreacion: 'DESC' }, // Historial reciente primero
-        });
-    }
+    where: { tareaId },
+    relations: ['usuario'], 
+    // SOLUCIÓN: Si la columna es 'fechaCreacion', está bien. 
+    // Si la columna es 'creadoEn' o 'fecha_creacion', cámbiala aquí.
+   order: { ['fechaCreacion' as keyof Actividad]: 'DESC' }, // <--- Usa el nombre exacto de la entidad
+});
 }
-
+}
 export const actividadesService = new ActividadesService();

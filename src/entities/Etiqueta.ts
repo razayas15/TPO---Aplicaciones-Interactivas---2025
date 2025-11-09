@@ -17,7 +17,5 @@ export class Etiqueta {
 
     @Column({ unique: true })
     nombre!: string; 
-    // NOTA: Esta es la mitad de la relación Many-to-Many
-    // @ManyToMany(() => Tarea, tarea => tarea.etiquetas)
-    // tareas!: Tarea[]; 
+    
 }

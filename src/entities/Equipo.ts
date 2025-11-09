@@ -26,6 +26,6 @@ export class Equipo {
     membresias!: Membresia[];
 
     // 2. Relación con Tareas (las tareas que pertenecen a este equipo)
-    @OneToMany(() => Tarea, tarea => tarea.equipo)
-    tareas!: Tarea[]; 
+    /*@OneToMany(() => Tarea, tarea => tarea.equipo)
+    tareas!: Tarea[];*/ 
 }

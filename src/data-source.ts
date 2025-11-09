@@ -19,21 +19,8 @@ export const AppDataSource = new DataSource({
     synchronize: true, // Para reconstruir el esquema limpio en desarrollo
     logging: false,
     
-    // --- SOLUCIÓN: LISTA COMPLETA + RUTAS ABSOLUTAS ---
-    entities: [
-        // 1. Listar explícitamente todas las clases importadas (método más seguro)
-        Usuario, 
-        Equipo, 
-        Membresia, 
-        Etiqueta, 
-        Comentario, 
-        Notificacion,
-        Tarea, 
-        Actividad,
-        
-        // 2. Usar Glob para asegurar la carga en runtime (anula problemas de ts-node)
-        path.join(__dirname, 'entities', '*.ts')
-    ],
+    // SOLUCIÓN FINAL: Lista explícita usando el patrón GLOB
+    entities: [Usuario, Equipo, Membresia,Etiqueta, Tarea, Actividad, Comentario, Notificacion],
     
     // Dejamos las migraciones vacías para la inicialización limpia (ya eliminamos la antigua)
     migrations: [], 

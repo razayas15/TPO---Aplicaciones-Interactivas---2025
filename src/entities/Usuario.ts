@@ -36,14 +36,14 @@ export class Usuario {
   @OneToMany(() => Membresia, (membresia) => membresia.usuario)
   membresias!: Membresia[]; // 2. Relación con Tareas Creadas: Un usuario puede crear muchas tareas
 
-  @OneToMany(() => Tarea, (tarea) => tarea.creadoPor)
-  tareasCreadas!: Tarea[]; // 3. Relación con Tareas Asignadas: Un usuario puede tener muchas tareas asignadas
+  //@OneToMany(() => Tarea, (tarea) => tarea.creadoPor)
+  //tareasCreadas!: Tarea[]; // 3. Relación con Tareas Asignadas: Un usuario puede tener muchas tareas asignadas
 
-  @OneToMany(() => Tarea, (tarea) => tarea.asignadoA) // Usar el nombre exacto del campo en Tarea.ts
-  tareasAsignadas!: Tarea[];// Método para no exponer el password en las respuestas de la API (Seguridad)
+  //@OneToMany(() => Tarea, (tarea) => tarea.asignadoA) // Usar el nombre exacto del campo en Tarea.ts
+  //tareasAsignadas!: Tarea[];// Método para no exponer el password en las respuestas de la API (Seguridad)
 
-  @OneToMany(() => Actividad, actividad => actividad.usuario)
-    actividades!: Actividad[];
+  //@OneToMany(() => Actividad, actividad => actividad.usuario)
+  //actividades!: Actividad[];
 
   @OneToMany(() => Notificacion, notificacion => notificacion.usuario)
     notificaciones!: Notificacion[];

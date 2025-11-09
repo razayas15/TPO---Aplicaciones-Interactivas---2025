@@ -1,14 +1,15 @@
+// src/entities/Tarea.ts
+
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  ManyToMany,
-  OneToMany,
-  JoinTable,
-  CreateDateColumn,
-  UpdateDateColumn,
-  JoinColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  ManyToMany,
+  JoinTable,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
 } from "typeorm";
 import { Usuario } from "./Usuario";
 import { Equipo } from "./Equipo";
@@ -16,64 +17,78 @@ import { Etiqueta } from "./Etiqueta";
 import { Actividad } from "./Actividad";
 import { Comentario } from "./Comentario";
 
+@Entity('tareas') // ¡CRÍTICO! Faltaba el decorador @Entity
 export class Tarea {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  @Column()
-  titulo!: string;
+  @Column()
+  titulo!: string;
 
-  @Column("text")
-  descripcion!: string;
+  @Column("text")
+  descripcion!: string;
 
-  @Column({ type: 'enum', enum: ['PENDIENTE', 'EN_CURSO', 'FINALIZADA', 'CANCELADA'], default: 'PENDIENTE' })
-estado!: string; // O el enum tipado
+  @Column({
+    type: "varchar",
+    enum: ["PENDIENTE", "EN_CURSO", "FINALIZADA", "CANCELADA"],
+    default: "PENDIENTE",
+  })
+  estado!: string; 
 
-  @Column({ type: "enum", enum: ["Alta", "Media", "Baja"], default: "Media" })
-  prioridad!: "Alta" | "Media" | "Baja";
+  @Column({ type: "varchar", enum: ["Alta", "Media", "Baja"], default: "Media" })
+  prioridad!: "Alta" | "Media" | "Baja";
 
- @Column({ type: 'timestamp', nullable: true })
-fechaLimite?: Date; // <-- DEBE SER OPCIONAL (añadir ?)
+  @Column({ type: "datetime", nullable: true })
+  fechaLimite?: Date | null; // Corregido: Permite Date o null
 
-  @ManyToOne(() => Usuario, { nullable: true })
-  @JoinColumn({ name: "asignadoAId" })
-  asignadoA?: Usuario;
+  // --- RELACIONES MANY-TO-ONE (Foreign Keys) ---
 
-  @Column({ nullable: true })
-  asignadoAId?: number;
+  // Creador de la Tarea (Unidireccional: solo la FK)
+  @ManyToOne(() => Usuario) 
+  @JoinColumn({ name: 'creadoPorId' })
+  creador!: Usuario;
+  @Column()
+  creadoPorId!: number; // Columna física
 
-  @ManyToOne(() => Usuario, { nullable: false })
-  @JoinColumn({ name: "creadoPorId" })
-  creadoPor!: Usuario;
+  // Asignado a (Unidireccional y opcional)
+  @ManyToOne(() => Usuario, { nullable: true })
+  @JoinColumn({ name: 'asignadoAId' })
+  asignadoA?: Usuario;
+  @Column({ nullable: true })
+  asignadoAId?: number;
 
-  @Column()
-  creadoPorId!: number;
+  // Equipo (Unidireccional)
+  @ManyToOne(() => Equipo) 
+  @JoinColumn({ name: "equipoId" })
+  equipo!: Equipo;
+  @Column()
+  equipoId!: number;
 
-  @ManyToOne(() => Equipo, (equipo) => equipo.tareas, { nullable: true })
-  @JoinColumn({ name: "equipoId" })
-  equipo!: Equipo;
+  // --- RELACIONES MANY-TO-MANY ---
+  @ManyToMany('Etiqueta') // <--- USAR STRING LITERAL para resolver la carga
+    @JoinTable({
+        name: "tarea_etiquetas",
+        joinColumn: { name: "tareaId" },
+        inverseJoinColumn: { name: "etiquetaId" },
+    })
+    etiquetas!: Etiqueta[];
 
-  @Column()
-  equipoId!: number;
+  // --- PROPIEDADES INVERSAS (DEBEN SER EL LADO ONE DE UN ONE-TO-MANY) ---
+  // El historial y comentarios deben estar definidos aquí para que el ORM lo sepa,
+  // pero para evitar el error de carga, deben ser propiedades válidas si se usara el decorador @OneToMany.
+  
+  // NOTA: Quitamos el decorador @OneToMany para evitar el error de metadata persistente
+  
+  // Esta propiedad era un error de sintaxis ("istorial")
+  // La dejamos tipada para el contexto del negocio, pero sin decorador OneToMany
+  // istorial!: Actividad[]; 
+  
+  // Comentarios (Propiedad solo para contexto, si eliminas el OneToMany)
+  // comentarios!: Comentario[]; 
 
-  @ManyToMany(() => Etiqueta)
-  @JoinTable({
-    name: "tarea_etiquetas",
-    joinColumn: { name: "tareaId" },
-    inverseJoinColumn: { name: "etiquetaId" },
-  })
-  etiquetas!: Etiqueta[];
-  istorial!: Actividad[];
+  @CreateDateColumn()
+  fechaCreacion!: Date;
 
-  @OneToMany(() => Comentario, (comentario) => comentario.tarea, {
-    cascade: true,
-  })
-  comentarios!: Comentario[];
-
-  @CreateDateColumn()
-  fechaCreacion!: Date;
-
-  @UpdateDateColumn()
-  fechaActualizacion!: Date;
-
+  @UpdateDateColumn()
+  fechaActualizacion!: Date;
 }

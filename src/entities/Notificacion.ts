@@ -21,7 +21,7 @@ export class Notificacion {
     @Column({ type: 'text' })
     mensaje!: string; // Mensaje corto para mostrar al usuario
 
-    @Column({ type: 'enum', enum: ['ASIGNACION', 'CAMBIO_ESTADO', 'COMENTARIO', 'INVITACION'] })
+    @Column({ type: 'varchar', enum: ['ASIGNACION', 'CAMBIO_ESTADO', 'COMENTARIO', 'INVITACION'] })
     tipo!: NotificacionTipo;
 
     @Column({ default: false })
