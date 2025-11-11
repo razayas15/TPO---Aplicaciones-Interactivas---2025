@@ -1,11 +1,11 @@
 // src/dtos/update-role.dto.ts
-
-import { IsEmail, IsIn } from 'class-validator';
+import { IsEmail, IsIn, IsNotEmpty } from 'class-validator';
 
 export class UpdateRoleDto {
-    @IsEmail({}, { message: 'Debe ser un correo electrónico válido.' })
-    email!: string;
+  @IsEmail({}, { message: 'Debe especificar un correo válido.' })
+  email!: string;
 
-    @IsIn(['Propietario', 'Miembro'], { message: 'El rol solo puede ser Propietario o Miembro.' })
-    rol!: 'Propietario' | 'Miembro';
+  @IsNotEmpty({ message: 'El rol no puede estar vacío.' })
+  @IsIn(['Propietario', 'Miembro'], { message: 'El rol debe ser Propietario o Miembro.' })
+  rol!: 'Propietario' | 'Miembro';
 }

@@ -23,6 +23,6 @@ export const AppDataSource = new DataSource({
     entities: [Usuario, Equipo, Membresia,Etiqueta, Tarea, Actividad, Comentario, Notificacion],
     
     // Dejamos las migraciones vacías para la inicialización limpia (ya eliminamos la antigua)
-    migrations: [], 
+    migrations: ["src/migrations/*.ts"], 
     subscribers: [],
 });

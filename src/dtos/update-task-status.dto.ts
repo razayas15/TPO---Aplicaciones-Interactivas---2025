@@ -3,7 +3,8 @@
 import { IsIn } from 'class-validator';
 
 export class UpdateTaskStatusDto {
-    @IsIn(['Pendiente', 'En curso', 'Finalizada', 'Cancelada'], 
-          { message: 'Estado inválido. Valores permitidos: Pendiente, En curso, Finalizada, Cancelada.' })
-    estado!: 'Pendiente' | 'En curso' | 'Finalizada' | 'Cancelada';
+    @IsIn(['PENDIENTE', 'EN_CURSO', 'FINALIZADA', 'CANCELADA'], {
+  message: 'Estado inválido. Valores permitidos: PENDIENTE, EN_CURSO, FINALIZADA, CANCELADA.'
+})
+estado!: 'PENDIENTE' | 'EN_CURSO' | 'FINALIZADA' | 'CANCELADA';
 }

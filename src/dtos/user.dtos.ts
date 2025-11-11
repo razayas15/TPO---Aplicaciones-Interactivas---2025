@@ -1,6 +1,6 @@
 // src/dtos/user.dtos.ts - CORREGIDO
 
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional } from 'class-validator';
 
 // DTO para Registro
 export class CreateUserDto {
@@ -24,4 +24,20 @@ export class LoginUserDto {
     @IsString()
     @IsNotEmpty({ message: 'La contraseña es obligatoria.' })
     password!: string; // ¡CORRECCIÓN!
+}
+
+export class UpdateUserDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty({ message: 'El nombre no puede estar vacío si se envía.' })
+  nombre?: string;
+
+  @IsOptional()
+  @IsEmail({}, { message: 'El correo debe tener un formato válido.' })
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres.' })
+  password?: string;
 }

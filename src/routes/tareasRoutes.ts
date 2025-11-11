@@ -32,6 +32,10 @@ router.patch(
     tareasController.actualizarEstado
 );
 
-// Faltan GET /tareas (listado con filtros) y DELETE /tareas/:id
+// GET /api/tareas - Listar todas las tareas del usuario
+router.get('/', tareasController.listarTareas);
+
+// DELETE /api/tareas/:id - Eliminar tarea
+router.delete('/:id', tareasController.eliminarTarea);
 
 export default router;

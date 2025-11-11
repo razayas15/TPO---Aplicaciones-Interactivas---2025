@@ -13,12 +13,12 @@ import notificacionesRoutes from "./routes/notificacionesRoutes"; // Asumimos es
 
 import { AppDataSource } from "./data-source";
 
-const PORT = 3000;
+const PORT = 4000;
 const app = express();
 
 // Middlewares Globales
-app.use(cors()); // Permite acceso desde el frontend
 app.use(express.json()); // Permite a Express parsear JSON del cuerpo de la petición
+app.use(cors()); // Permite acceso desde el frontend
 
 // Montar Rutas con el prefijo /api
 app.use("/api/usuarios", usuarioRoutes);
@@ -34,12 +34,12 @@ app.use("/api/notificaciones", notificacionesRoutes);
 AppDataSource.initialize()
     .then(() => {
         console.log("Conexión a la base de datos establecida.");
-        
-        // --- CÓDIGO PARA INICIAR EL SERVIDOR EXPRESS ---
+
+        // INICIAR EL SERVIDOR AQUÍ
         app.listen(PORT, () => {
             console.log(`Servidor Express escuchando en http://localhost:${PORT}/api`);
         });
-        
+
     })
     .catch((error) => console.error("Error al iniciar TypeORM:", error));
 

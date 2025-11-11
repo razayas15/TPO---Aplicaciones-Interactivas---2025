@@ -138,12 +138,12 @@ class EquiposService {
     // --- INTEGRACIÓN: DISPARAR NOTIFICACIÓN ---
     const equipo = await equipoRepo.findOneBy({ id: equipoId });
     await notificacionesService.crearNotificacion(
-        usuarioAAgregar.id, 
-        'INVITACION', 
-        `Has sido añadido como ${rol} al equipo "${equipo?.nombre}".`,
-        equipoId
+      usuarioAAgregar.id,
+      "INVITACION",
+      `Has sido añadido como ${rol} al equipo "${equipo?.nombre}".`,
+      equipoId
     );
-    
+
     return membresiaGuardada;
   }
 
@@ -200,6 +200,52 @@ class EquiposService {
 
     return { message: "Miembro removido exitosamente." };
   }
+
+  // src/services/equiposService.ts
+
+  async listarEquiposPorUsuario(usuarioId: number): Promise<Equipo[]> {
+    // Obtenemos las membresías del usuario
+    const membresias = await membresiaRepo.find({
+      where: { usuarioId },
+      relations: ["equipo"],
+    });
+
+    // Si no pertenece a ninguno
+    if (membresias.length === 0) {
+      return [];
+    }
+
+    // Extraemos los equipos desde las membresías
+    return membresias.map((m) => m.equipo);
+  }
+
+  async obtenerEquipoPorId(
+    equipoId: number,
+    usuarioId: number
+  ): Promise<Equipo> {
+    // Verifica que el usuario tenga acceso al equipo
+    const membresia = await membresiaRepo.findOne({
+      where: { equipoId, usuarioId },
+    });
+
+    if (!membresia) {
+      throw { status: 403, message: "Acceso denegado al equipo solicitado." };
+    }
+
+    // Cargamos el equipo con sus relaciones principales
+    const equipo = await equipoRepo.findOne({
+      where: { id: equipoId },
+      relations: ["membresias", "membresias.usuario", "tareas"],
+    });
+
+    if (!equipo) {
+      throw { status: 404, message: "Equipo no encontrado." };
+    }
+
+    return equipo;
+  }
+
+  
 }
 
 export const equiposService = new EquiposService();

@@ -8,6 +8,7 @@ import {
 import { Membresia } from './Membresia'; 
 import { Tarea } from './Tarea';
 
+
 @Entity('equipos')
 export class Equipo {
     @PrimaryGeneratedColumn()
