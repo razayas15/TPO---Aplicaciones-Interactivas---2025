@@ -9,17 +9,21 @@ import { UpdateRoleDto } from "../dtos/update-role.dto";
 import { membresiasService } from "../services/membresiasService";
 
 export class EquiposController {
-  // ... Código para obtener el error tipado ...
-  private handleServiceError(res: Response, error: unknown) {
+  // -------------------------------------------------------------------
+  // Método genérico para manejo de errores
+  // -------------------------------------------------------------------
+  private handleServiceError = (res: Response, error: unknown) => {
     const customError = error as { status?: number; message?: string };
     const status = customError.status || 500;
     return res
       .status(status)
       .json({ message: customError.message || "Error interno del servidor." });
-  }
+  };
 
-  /** POST /equipos - Crear un nuevo equipo **/
-  async crearEquipo(req: Request, res: Response, next: NextFunction) {
+  // -------------------------------------------------------------------
+  // POST /equipos - Crear un nuevo equipo
+  // -------------------------------------------------------------------
+  crearEquipo = async (req: Request, res: Response) => {
     try {
       const creadorId = (req as any).user.id;
       const teamDto: CreateTeamDto = req.body;
@@ -29,18 +33,17 @@ export class EquiposController {
     } catch (error) {
       return this.handleServiceError(res, error);
     }
-  }
+  };
 
-  /** DELETE /equipos/:id - Eliminar un equipo **/
+  // -------------------------------------------------------------------
+  // DELETE /equipos/:id - Eliminar un equipo
+  // -------------------------------------------------------------------
   async eliminarEquipo(req: Request, res: Response, next: NextFunction) {
     try {
       const equipoId = parseInt(req.params.id);
       const usuarioId = (req as any).user.id;
 
-      // 1. Verificar Permiso: Solo el Propietario puede eliminar
       await equiposService.verificarPermiso(usuarioId, equipoId, "Propietario");
-
-      // 2. Eliminar (incluye validación de tareas en el servicio)
       const resultado = await equiposService.eliminarEquipo(equipoId);
       return res.status(200).json(resultado);
     } catch (error) {
@@ -48,7 +51,9 @@ export class EquiposController {
     }
   }
 
-  /** POST /equipos/:id/members - Añadir miembro **/
+  // -------------------------------------------------------------------
+  // POST /equipos/:id/members - Añadir miembro
+  // -------------------------------------------------------------------
   async agregarMiembro(req: Request, res: Response, next: NextFunction) {
     try {
       const equipoId = parseInt(req.params.id);
@@ -67,7 +72,9 @@ export class EquiposController {
     }
   }
 
-  /** DELETE /equipos/:id/members - Remover miembro **/
+  // -------------------------------------------------------------------
+  // DELETE /equipos/:id/members - Remover miembro
+  // -------------------------------------------------------------------
   async removerMiembro(req: Request, res: Response, next: NextFunction) {
     try {
       const equipoId = parseInt(req.params.id);
@@ -85,16 +92,15 @@ export class EquiposController {
     }
   }
 
-  // src/controllers/equiposController.ts - (Añadir a la clase EquiposController)
-
-  /** PATCH /equipos/:id/role - Actualizar rol de un miembro **/
+  // -------------------------------------------------------------------
+  // PATCH /equipos/:id/role - Actualizar rol de un miembro
+  // -------------------------------------------------------------------
   async actualizarRol(req: Request, res: Response, next: NextFunction) {
     try {
       const equipoId = parseInt(req.params.id);
       const editorId = (req as any).user.id;
       const roleDto = req.body as UpdateRoleDto;
 
-      // Se llama al nuevo servicio de Membresías
       const membresiaActualizada = await membresiasService.actualizarRol(
         equipoId,
         roleDto,
@@ -107,6 +113,26 @@ export class EquiposController {
     }
   }
 
+  // -------------------------------------------------------------------
+  // GET /equipos - Listar todos los equipos del usuario autenticado
+  // -------------------------------------------------------------------
+  async obtenerEquipos(req: Request, res: Response) {
+    try {
+      const usuarioId = (req as any).user.id;
+      const equipos = await equiposService.listarEquiposPorUsuario(usuarioId);
+      return res.status(200).json(equipos);
+    } catch (error) {
+      console.error("❌ Error al listar equipos:", error);
+      const status = (error as any).status || 500;
+      return res
+        .status(status)
+        .json({ message: "Error interno al listar equipos." });
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // GET /equipos/usuario - Listar equipos específicos del usuario
+  // -------------------------------------------------------------------
   async listarEquiposPorUsuario(req: Request, res: Response) {
     try {
       const usuarioId = (req as any).user.id;
@@ -120,6 +146,10 @@ export class EquiposController {
         .json({ message: "Error interno al listar equipos." });
     }
   }
+
+  // -------------------------------------------------------------------
+  // GET /equipos/:id - Obtener equipo por ID
+  // -------------------------------------------------------------------
   async obtenerEquipoPorId(req: Request, res: Response) {
     try {
       const equipoId = parseInt(req.params.id, 10);

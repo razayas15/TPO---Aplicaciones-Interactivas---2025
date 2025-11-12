@@ -1,25 +1,21 @@
-// src/routes/notificacionesRoutes.ts
-
 import { Router } from 'express';
 import { notificacionesController } from '../controllers/notificacionesController';
-import { authMiddleware } from '../middlewares/authMiddleware'; 
-// import { validateDtoMiddleware } from '../middlewares/validateDto'; 
+import { authMiddleware } from '../middlewares/authMiddleware';
+import { validateDtoMiddleware } from '../middlewares/validateDto';
+import { MarkAsReadDto } from '../dtos/mark-as-read.dto';
 
 const router = Router();
 
-router.use(authMiddleware); 
+router.use(authMiddleware);
 
-// GET /api/notificaciones - Listar notificaciones del usuario
-router.get(
-    '/', 
-    notificacionesController.obtener
-); 
+// GET /api/notificaciones
+router.get('/', notificacionesController.obtener);
 
-// PATCH /api/notificaciones/read - Marcar como leídas (Recibe { ids: [1, 2, 3] })
+// PATCH /api/notificaciones/read
 router.patch(
-    '/read', 
-    // validateDtoMiddleware(MarkAsReadDto), // Se puede hacer validación manual de IDs en el controlador
-    notificacionesController.marcarLeidas
-); 
+  '/read',
+  validateDtoMiddleware(MarkAsReadDto),
+  notificacionesController.marcarLeidas
+);
 
 export default router;

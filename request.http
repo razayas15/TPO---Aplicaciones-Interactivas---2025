@@ -1,117 +1,10 @@
 @host = http://localhost:4000/api
 
-@name = token_ana
-@prompt = response.json "token"
-
-@name = token_juan
-@prompt = response.json "token"
-
-### 0.1 REGISTRAR USUARIO 1 (Propietario)
-POST {{host}}/usuarios/signup
-Content-Type: application/json
-
-{
-  "nombre": "Ana García",
-  "email": "ana@gmail.com",
-  "password": "Password123"
-}
-
-###
-### 0.2 REGISTRAR USUARIO 2 (Miembro)
-POST {{host}}/usuarios/signup
-Content-Type: application/json
-
-{
-  "nombre": "Juan Pérez",
-  "email": "juan@empresa.com",
-  "password": "Password123"
-}
-
-
-### Login usuario
-POST http://localhost:4000/api/usuarios/login
-Content-Type: application/json
-
-{
-  "email": "ana@empresa.com",
-  "password": "Password123"
-}
-
-### LISTADO DE USUARIOS
-GET http://localhost:4000/api/usuarios
-Accept: application/json
-
-### Filtro por nombre (coincidencia parcial)
-GET http://localhost:4000/api/usuarios?nombre=ramiro
-Accept: application/json
-
-###
-
-### Filtro por email
-GET http://localhost:4000/api/usuarios?email=@example.com
-Accept: application/json
-
-###
-
-### Orden ascendente por fecha de creación
-GET http://localhost:4000/api/usuarios?orden=dec
-Accept: application/json
-
-### Obtener usuario con ID 1
-GET http://localhost:4000/api/usuarios/99
-Content-Type: application/json
-
-### =======================================
-### 3. ACTUALIZAR USUARIO
-### =======================================
-
-# Actualizar nombre y contraseña del usuario con ID 1
-PUT http://localhost:4000/api/usuarios/1
-Content-Type: application/json
-
-{
-  "nombre": "Ana García (Editado)",
-  "password": "NuevaPassword123"
-}
-
-###
-
-# Actualizar solo el email
-PUT http://localhost:4000/api/usuarios/1
-Content-Type: application/json
-
-{
-  "email": "ana_actualizada@empresa.com"
-}
-
-
-### =======================================
-### 4. ELIMINAR USUARIO
-### =======================================
-
-# Eliminar usuario con ID 1
-DELETE http://localhost:4000/api/usuarios/1
-
-###
-
-# Intentar eliminar un usuario inexistente
-DELETE http://localhost:4000/api/usuarios/999
-
-###
-
-# Intentar eliminar un usuario que pertenece a un equipo
-# (Debe devolver error 400)
-DELETE http://localhost:4000/api/usuarios/2
-
-####################################################################################################################################
-
-@host = http://localhost:4000/api
-
 #################################################################
 ## 🧩 PARTE 0 — CONFIGURACIÓN INICIAL
 #################################################################
 
-### 0.1 — CREAR USUARIO 1 (PROPIETARIO)
+### 0.1 — REGISTRAR USUARIO 1 (PROPIETARIO)
 POST {{host}}/usuarios/signup
 Content-Type: application/json
 
@@ -121,7 +14,7 @@ Content-Type: application/json
   "password": "Password123"
 }
 
-### 0.2 — CREAR USUARIO 2 (MIEMBRO)
+### 0.2 — REGISTRAR USUARIO 2 (MIEMBRO)
 POST {{host}}/usuarios/signup
 Content-Type: application/json
 
@@ -135,7 +28,9 @@ Content-Type: application/json
 ## 🧩 PARTE 1 — LOGIN Y TOKEN JWT
 #################################################################
 
-@token_mariano = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiZW1haWwiOiJtYXJpYW5vQGV4YW1wbGUuY29tIiwiaWF0IjoxNzYyODkwNzA5LCJleHAiOjE3NjI5NzcxMDl9.Q5nALhNYbNHNSU_Ap21-Be_IF499JFUEUFoS1ezy2BQ
+# 🔑 Guardar manualmente el token obtenido del login (reemplazá si cambia)
+@token_mariano = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiZW1haWwiOiJtYXJpYW5vQGV4YW1wbGUuY29tIiwiaWF0IjoxNzYyOTEzMDYzLCJleHAiOjE3NjI5OTk0NjN9.gteGHnWxDEsFBI-qelPQHAP297wD__ZgaOarH89BwiA
+
 ### 1.1 — LOGIN USUARIO 1 (PROPIETARIO)
 POST {{host}}/usuarios/login
 Content-Type: application/json
@@ -144,6 +39,7 @@ Content-Type: application/json
   "email": "mariano@example.com",
   "password": "Password123"
 }
+
 
 ### 1.2 — LOGIN USUARIO 2 (MIEMBRO)
 POST {{host}}/usuarios/login
@@ -154,8 +50,9 @@ Content-Type: application/json
   "password": "Password123"
 }
 
+
 #################################################################
-## 🧩 PARTE 2 — GESTIÓN DE EQUIPOS
+## 🧩 PARTE 2 — EQUIPOS Y MEMBRESÍAS
 #################################################################
 
 ### 2.1 — CREAR EQUIPO (Propietario: Mariano)
@@ -164,14 +61,16 @@ Content-Type: application/json
 Authorization: Bearer {{token_mariano}}
 
 {
-  "nombre": "Equipo Desarrollo IT"
+  "nombre": "Equipo Desarrollo IT 2"
 }
 
-### 2.2 — LISTAR EQUIPOS (Propietario autenticado)
+
+
+### 2.2 — LISTAR EQUIPOS
 GET {{host}}/equipos
 Authorization: Bearer {{token_mariano}}
 
-### 2.3 — AÑADIR MIEMBRO (Agregar a Ramiro al equipo ID 1)
+### 2.3 — AGREGAR MIEMBRO (Ramiro)
 POST {{host}}/equipos/1/members
 Content-Type: application/json
 Authorization: Bearer {{token_mariano}}
@@ -181,16 +80,7 @@ Authorization: Bearer {{token_mariano}}
   "rol": "Miembro"
 }
 
-### 2.4 — REMOVER MIEMBRO (Remover a Ramiro del equipo ID 1)
-DELETE {{host}}/equipos/1/members
-Content-Type: application/json
-Authorization: Bearer {{token_mariano}}
-
-{
-  "email": "ramiro@example.com"
-}
-
-### 2.5 — ACTUALIZAR ROL DE MIEMBRO (Ejemplo: Ramiro pasa a Propietario)
+### 2.4 — CAMBIAR ROL DE MIEMBRO
 PATCH {{host}}/equipos/1/role
 Content-Type: application/json
 Authorization: Bearer {{token_mariano}}
@@ -200,23 +90,82 @@ Authorization: Bearer {{token_mariano}}
   "nuevoRol": "Propietario"
 }
 
-### 2.6 — ELIMINAR EQUIPO (solo si no tiene tareas activas)
-DELETE {{host}}/equipos/1
+#################################################################
+## 🧩 PARTE 3 — TAREAS
+#################################################################
+
+### 3.1 — CREAR TAREA EN EQUIPO
+POST {{host}}/tareas
+Content-Type: application/json
+Authorization: Bearer {{token_mariano}}
+
+{
+  "titulo": "Diseñar API REST",
+  "descripcion": "Definir endpoints y controladores",
+  "prioridad": "Alta",
+  "equipoId": 1
+}
+
+### 3.2 — CAMBIAR ESTADO DE TAREA
+PATCH {{host}}/tareas/1/estado
+Content-Type: application/json
+Authorization: Bearer {{token_mariano}}
+
+{
+  "estado": "CANCELADA"
+}
+
+### 3.3 — LISTAR TAREAS DEL EQUIPO
+GET {{host}}/tareas?equipoId=1
 Authorization: Bearer {{token_mariano}}
 
 #################################################################
-## 🧩 PARTE 3 — TEST RÁPIDO DE VALIDACIONES
+## 🧩 PARTE 4 — COMENTARIOS Y ACTIVIDADES
 #################################################################
 
-### 3.1 — CREAR EQUIPO SIN TOKEN (Debe fallar con 401)
+### 4.1 — AGREGAR COMENTARIO A UNA TAREA
+POST {{host}}/tareas/1/comentarios
+Content-Type: application/json
+Authorization: Bearer {{token_mariano}}
+
+{
+  "contenido": "Recordar definir el esquema de autenticación antes del deploy."
+}
+
+### 4.2 — CONSULTAR HISTORIAL DE ACTIVIDAD DE UNA TAREA
+GET {{host}}/tareas/1/actividad
+Authorization: Bearer {{token_mariano}}
+
+#################################################################
+## 🧩 PARTE 5 — NOTIFICACIONES
+#################################################################
+
+### 5.1 — LISTAR NOTIFICACIONES DEL USUARIO
+GET {{host}}/notificaciones
+Authorization: Bearer {{token_mariano}}
+
+### 5.2 — MARCAR NOTIFICACIONES COMO LEÍDAS
+PATCH {{host}}/notificaciones/read
+Content-Type: application/json
+Authorization: Bearer {{token_mariano}}
+
+{
+  "ids": [1, 2]
+}
+
+#################################################################
+## 🧩 PARTE 6 — VALIDACIONES RÁPIDAS
+#################################################################
+
+### 6.1 — CREAR EQUIPO SIN TOKEN (Debe fallar con 401)
 POST {{host}}/equipos
 Content-Type: application/json
 
 {
-  "nombre": "Equipo Sin Autenticación"
+  "nombre": "Equipo No Autenticado"
 }
 
-### 3.2 — CREAR EQUIPO REPETIDO (Debe fallar con 400)
+### 6.2 — CREAR EQUIPO DUPLICADO (Debe fallar con 400)
 POST {{host}}/equipos
 Content-Type: application/json
 Authorization: Bearer {{token_mariano}}
@@ -225,7 +174,7 @@ Authorization: Bearer {{token_mariano}}
   "nombre": "Equipo Desarrollo IT"
 }
 
-### 3.3 — AÑADIR MIEMBRO INEXISTENTE (Debe fallar con 404)
+### 6.3 — AGREGAR USUARIO INEXISTENTE (Debe fallar con 404)
 POST {{host}}/equipos/1/members
 Content-Type: application/json
 Authorization: Bearer {{token_mariano}}

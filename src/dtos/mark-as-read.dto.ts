@@ -1,9 +1,9 @@
 // src/dtos/mark-as-read.dto.ts
-
-import { IsBoolean, IsNotEmpty } from 'class-validator';
+import { IsArray, ArrayNotEmpty, IsInt } from 'class-validator';
 
 export class MarkAsReadDto {
-    @IsBoolean()
-    @IsNotEmpty({ message: 'El estado de lectura es obligatorio.' })
-    leida!: boolean; // Siempre se enviará 'true'
+  @IsArray({ message: 'Debe enviar un arreglo de IDs.' })
+  @ArrayNotEmpty({ message: 'Debe incluir al menos un ID.' })
+  @IsInt({ each: true, message: 'Cada ID debe ser un número entero.' })
+  ids!: number[];
 }

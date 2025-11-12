@@ -18,7 +18,7 @@ export class Notificacion {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column({ type: 'text' })
+    @Column({ type: 'text' , length:255})
     mensaje!: string; // Mensaje corto para mostrar al usuario
 
     @Column({ type: 'varchar', enum: ['ASIGNACION', 'CAMBIO_ESTADO', 'COMENTARIO', 'INVITACION'] })

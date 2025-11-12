@@ -11,62 +11,65 @@ const comentarioRepo = AppDataSource.getRepository(Comentario);
 const tareaRepo = AppDataSource.getRepository(Tarea);
 
 class ComentariosService {
-    
-    // --- Lógica Auxiliar para Verificación de Permisos ---
-    
+
     private async verificarAccesoATarea(tareaId: number, usuarioId: number): Promise<Tarea> {
-        const tarea = await tareaRepo.findOne({ 
+        const tarea = await tareaRepo.findOne({
             where: { id: tareaId } as any,
-            // Select para asegurar que la FK simple 'equipoId' se cargue
             select: ['id', 'equipoId']
         });
 
-        if (!tarea) {
-            throw { status: 404, message: 'Tarea no encontrada.' };
-        }
-        
-        // Autorización: Verificar que el usuario sea al menos Miembro.
-        await equiposService.verificarPermiso(usuarioId, tarea.equipoId!, 'Miembro');
+        if (!tarea) throw { status: 404, message: 'Tarea no encontrada.' };
 
+        await equiposService.verificarPermiso(usuarioId, tarea.equipoId!, 'Miembro');
         return tarea;
     }
 
-    // -------------------------------------------------------------------
-    // --- MÉTODO COMPLETO DE CREAR ---
-    // -------------------------------------------------------------------
-
-    /**
-     * Añade un comentario a una tarea existente.
-     */
+    // ✅ CREAR
     async crearComentario(tareaId: number, autorId: number, commentDto: CreateCommentDto): Promise<Comentario> {
-        // 1. Verificar acceso y existencia de la tarea
-        await this.verificarAccesoATarea(tareaId, autorId); 
-        
-        // 2. Crear Comentario (usa los parámetros del scope actual: tareaId, autorId)
+        await this.verificarAccesoATarea(tareaId, autorId);
         const nuevoComentario = comentarioRepo.create({
             contenido: commentDto.contenido,
-            tareaId: tareaId, // Ahora esta variable es accesible
-            autorId: autorId, // Ahora esta variable es accesible
+            tareaId,
+            autorId,
         });
 
-        const comentarioGuardado = await comentarioRepo.save(nuevoComentario);
-        
-        // Recargar para devolver las relaciones eager-loaded (como el autor)
-        return (await comentarioRepo.findOne({ 
-            where: { id: comentarioGuardado.id } as any 
-        }))!;
+        const guardado = await comentarioRepo.save(nuevoComentario);
+        return (await comentarioRepo.findOne({ where: { id: guardado.id } }))!;
     }
-    
-    // -------------------------------------------------------------------
-    // --- MÉTODO PLACEHOLDER (EJEMPLO) ---
-    // -------------------------------------------------------------------
 
-    /**
-     * Placeholder para la lógica de eliminación.
-     */
-    async eliminarComentario(comentarioId: number, usuarioId: number) {
-        // Aquí iría la lógica completa de eliminación (Autor o Propietario del equipo)
-        return { message: 'Comentario eliminado.' };
+    // ✅ LISTAR
+    async listarPorTarea(tareaId: number, usuarioId: number): Promise<Comentario[]> {
+        await this.verificarAccesoATarea(tareaId, usuarioId);
+        return comentarioRepo.find({
+            where: { tareaId },
+            order: { fechaCreacion: 'ASC' },
+        });
+    }
+
+    // ✅ ELIMINAR
+    async eliminarComentario(comentarioId: number, usuarioId: number): Promise<{ message: string }> {
+        const comentario = await comentarioRepo.findOne({ where: { id: comentarioId } });
+        if (!comentario) throw { status: 404, message: 'Comentario no encontrado.' };
+
+        // Obtener tarea para verificar permisos
+        const tarea = await tareaRepo.findOne({ where: { id: comentario.tareaId }, select: ['equipoId'] });
+        if (!tarea) throw { status: 404, message: 'Tarea asociada no encontrada.' };
+
+        // Solo puede eliminarlo el autor o un Propietario del equipo
+        let tienePermiso = comentario.autorId === usuarioId;
+        if (!tienePermiso) {
+            try {
+                await equiposService.verificarPermiso(usuarioId, tarea.equipoId!, 'Propietario');
+                tienePermiso = true;
+            } catch (e) {}
+        }
+
+        if (!tienePermiso) {
+            throw { status: 403, message: 'No tiene permiso para eliminar este comentario.' };
+        }
+
+        await comentarioRepo.delete(comentarioId);
+        return { message: 'Comentario eliminado correctamente.' };
     }
 }
 

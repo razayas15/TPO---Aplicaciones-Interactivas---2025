@@ -1,21 +1,13 @@
 // src/routes/actividadesRoutes.ts
-
-import { Router } from 'express';
-import { authMiddleware } from '../middlewares/authMiddleware';
-import { ActividadesController } from '../controllers/actividadesController'; 
-export const actividadesController = new ActividadesController(); // <--- ¡Esto es lo que el router necesita!
+import { Router } from "express";
+import { authMiddleware } from "../middlewares/authMiddleware";
+import { actividadesController } from "../controllers/actividadesController";
 
 const router = Router();
 
-router.use(authMiddleware); 
+router.use(authMiddleware);
 
-// GET /api/tareas/:tareaId/actividad - Obtener el historial de una tarea
-router.get(
-    '/:tareaId/actividad', 
-    actividadesController.obtenerHistorial
-); 
-
-// Nota: Estas rutas deben montarse en el router principal bajo /api/tareas
-// En tu index.ts o app.ts: app.use('/api/tareas', actividadesRoutes);
+// GET /api/tareas/:tareaId/actividad
+router.get("/:tareaId/actividad", actividadesController.obtenerHistorial);
 
 export default router;

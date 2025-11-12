@@ -22,22 +22,39 @@ class EquiposService {
   /**
    * Crea un equipo y asigna al creador como Propietario.
    */
-  async crearEquipo(
-    teamDto: CreateTeamDto,
-    creadorId: number
-  ): Promise<Equipo> {
-    const nuevoEquipo = equipoRepo.create(teamDto);
-    const equipoGuardado = await equipoRepo.save(nuevoEquipo);
+  async crearEquipo(dto: CreateTeamDto, usuarioId: number): Promise<Equipo> {
+    try {
+      const equipoExistente = await equipoRepo.findOne({
+        where: { nombre: dto.nombre },
+      });
+      if (equipoExistente) {
+        throw {
+          status: 400,
+          message: `Ya existe un equipo con el nombre "${dto.nombre}".`,
+        };
+      }
 
-    // 1. Asignar creador como 'Propietario'
-    const membresia = membresiaRepo.create({
-      equipoId: equipoGuardado.id,
-      usuarioId: creadorId,
-      rol: "Propietario",
-    });
-    await membresiaRepo.save(membresia);
+      const equipo = equipoRepo.create(dto);
+      const equipoGuardado = await equipoRepo.save(equipo);
 
-    return equipoGuardado;
+      // Crear membresía del propietario
+      const membresia = membresiaRepo.create({
+        usuarioId,
+        equipoId: equipoGuardado.id,
+        rol: "Propietario",
+      });
+      await membresiaRepo.save(membresia);
+
+      return equipoGuardado;
+    } catch (error: any) {
+      if (error.code === "SQLITE_CONSTRAINT" || /UNIQUE/i.test(error.message)) {
+        throw {
+          status: 400,
+          message: `Ya existe un equipo con el nombre "${dto.nombre}".`,
+        };
+      }
+      throw error;
+    }
   }
 
   /**
@@ -120,10 +137,10 @@ class EquiposService {
       where: { equipoId, usuarioId: usuarioAAgregar.id },
     });
 
-    if (membresiaExistente) {
+    if (!["Propietario", "Miembro"].includes(rol)) {
       throw {
         status: 400,
-        message: "El usuario ya es miembro de este equipo.",
+        message: "Rol inválido. Valores permitidos: Propietario o Miembro.",
       };
     }
 
@@ -204,18 +221,10 @@ class EquiposService {
   // src/services/equiposService.ts
 
   async listarEquiposPorUsuario(usuarioId: number): Promise<Equipo[]> {
-    // Obtenemos las membresías del usuario
     const membresias = await membresiaRepo.find({
       where: { usuarioId },
-      relations: ["equipo"],
+      relations: ["equipo", "equipo.membresias", "equipo.membresias.usuario"],
     });
-
-    // Si no pertenece a ninguno
-    if (membresias.length === 0) {
-      return [];
-    }
-
-    // Extraemos los equipos desde las membresías
     return membresias.map((m) => m.equipo);
   }
 
@@ -244,8 +253,6 @@ class EquiposService {
 
     return equipo;
   }
-
-  
 }
 
 export const equiposService = new EquiposService();
